@@ -1,0 +1,30 @@
+{
+  "name": "node-csgo-gsi",
+  "version": "0.0.1",
+  "description": "Counter-Strike: Global Offensive Game State Integration for nodejs. https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Game_State_Integration",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shaunidiot/node-csgo-gsi.git"
+  },
+  "keywords": [
+    "steam",
+    "csgo",
+    "csgo-gsi",
+    "steam-csgo"
+  ],
+  "author": "Shaun Lim <shaunblacksheep@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shaunidiot/node-csgo-gsi/issues"
+  },
+  "homepage": "https://github.com/shaunidiot/node-csgo-gsi#readme",
+  "dependencies": {
+    "body-parser": "^1.14.1",
+    "express": "^4.13.3",
+    "http": "0.0.0"
+  }
+}
