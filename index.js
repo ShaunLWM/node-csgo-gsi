@@ -9,8 +9,8 @@ require('util').inherits(CSGOGSI, require('events').EventEmitter);
 var app = express();
 var server = http.createServer(app);
 
-app.use( bodyParser.json());       // to support JSON-encoded bodies
-app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+app.use( bodyParser.json());          // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({       // to support URL-encoded bodies
     extended: true
 }));
 
@@ -42,7 +42,7 @@ CSGOGSI.prototype.process = function(data) {
         this.emit('gameCTscore', data.map.team_ct_score);
         this.emit('gameTscore', data.map.team_t_score);
     }
-    
+
     if (typeof data.player !== 'undefined') {
         this.emit('player', data.player);
     }
@@ -79,7 +79,6 @@ CSGOGSI.prototype.process = function(data) {
                     this.c4Countdown(timeleft);
                 }
                 break;
-
                 case 'defused':
                 case 'exploded':
                 this._isBombPlanted = false;
