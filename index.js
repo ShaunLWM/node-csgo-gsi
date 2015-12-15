@@ -42,6 +42,10 @@ CSGOGSI.prototype.process = function(data) {
         this.emit('gameCTscore', data.map.team_ct_score);
         this.emit('gameTscore', data.map.team_t_score);
     }
+    
+    if (typeof data.player !== 'undefined') {
+        this.emit('player', data.player);
+    }
 
     if (typeof data.round !== 'undefined') {
 
