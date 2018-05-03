@@ -1,5 +1,7 @@
 # node-csgo-gsi
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/shaunidiot/node-csgo-gsi.svg)](https://greenkeeper.io/)
+
 [![npm](https://img.shields.io/npm/dt/node-csgo-gsi.svg)]()
 [![npm](https://img.shields.io/npm/v/node-csgo-gsi.svg)]()
 
