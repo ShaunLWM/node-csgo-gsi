@@ -1,4 +1,4 @@
-var CSGOGSI = require('./index');
+var CSGOGSI = require('../index');
 var gsi = new CSGOGSI();
 
 gsi.on('bombTimeStart', function() {

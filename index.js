@@ -1,32 +1,42 @@
 module.exports = CSGOGSI;
 
-var http = require('http');
-var express = require('express');
-var bodyParser = require('body-parser');
+var polka = require('polka');
+var fastJsonBody = require("fast-json-body");
 
 require('util').inherits(CSGOGSI, require('events').EventEmitter);
+var app = polka();
 
-var app = express();
-var server = http.createServer(app);
+// to support JSON-encoded bodies
+app.use(function bodyParser (req, res, next) {
+    fastJsonBody(req, function(err, body) {
+        req.body = body;
+        next();
+    });
+});
 
-app.use( bodyParser.json());          // to support JSON-encoded bodies
-app.use(bodyParser.urlencoded({       // to support URL-encoded bodies
+/*app.use(bodyParser.urlencoded({       // to support URL-encoded bodies
     extended: true
-}));
+}));*/
 
 function CSGOGSI() {
     var self = this;
     require('events').EventEmitter.call(this);
-    server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function() {
-        var addr = server.address();
-        console.log("CSGO GSI server listening on", addr.address + ":" + addr.port);
-    });
 
     app.post('/', function (req, res) {
         if (typeof req.body !== 'undefined') {
             self.emit('all', req.body);
             self.process(req.body);
+
+            console.log(req.body);
+
+            res.writeHead(200);
+        } else {
+            res.writeHead(404);
         }
+        res.end();
+    }).listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function() {
+        var addr = app.server.address();
+        console.log("CSGO GSI server listening on", addr.address + ":" + addr.port);
     });
 
     this._isBombPlanted = false;
