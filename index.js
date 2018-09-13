@@ -27,8 +27,6 @@ function CSGOGSI() {
             self.emit('all', req.body);
             self.process(req.body);
 
-            console.log(req.body);
-
             res.writeHead(200);
         } else {
             res.writeHead(404);
