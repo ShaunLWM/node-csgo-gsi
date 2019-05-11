@@ -1,5 +1,8 @@
 const CSGOGSI = require("../index"); // const CSGOGSI = require("node-csgo-gsi");
-let gsi = new CSGOGSI(3000);
+let gsi = new CSGOGSI({
+    port: 3000,
+    authToken: "Q79v5tcxVQ8u" // this must match the cfg auth token
+});
 
 gsi.on("bombTimeStart", function () {
     console.log("C4 planted");

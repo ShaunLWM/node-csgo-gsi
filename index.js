@@ -3,8 +3,9 @@ const bodyParser = require("body-parser");
 const EventEmitter = require("events");
 
 class CSGOGSI extends EventEmitter {
-    constructor(port = 3000) {
+    constructor({ port = 3000, authToken = "" }) {
         super();
+        this.authToken = authToken;
         this._isBombPlanted = false;
         this._c4Interval = null;
         this.app = express();
@@ -18,6 +19,11 @@ class CSGOGSI extends EventEmitter {
 
         this.app.post("/", (req, res) => {
             if (typeof req.body !== "undefined") {
+                // console.log(`auth: ${req.body["auth"]}`);
+                if (this.isAuthenticated(req.body)) {
+                    return res.writeHead(404);
+                }
+                
                 this.emit("all", req.body);
                 this.process(req.body);
                 return res.writeHead(200);
@@ -25,6 +31,14 @@ class CSGOGSI extends EventEmitter {
 
             return res.writeHead(404);
         });
+    }
+
+    isAuthenticated(data) {
+        if (this.authToken.length < 1 || (typeof data["auth"]["token"] !== "undefined" && this.authToken.length > 0 && data["auth"]["token"] === this.authToken)) {
+            return true;
+        }
+
+        return false;
     }
 
     process(data) {
