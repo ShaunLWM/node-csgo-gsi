@@ -1,6 +1,6 @@
 {
   "name": "node-csgo-gsi",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Counter-Strike: Global Offensive Game State Integration for nodejs. https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Game_State_Integration",
   "main": "index.js",
   "repository": {
