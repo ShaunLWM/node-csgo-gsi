@@ -19,8 +19,7 @@ class CSGOGSI extends EventEmitter {
 
         this.app.post("/", (req, res) => {
             if (typeof req.body !== "undefined") {
-                // console.log(`auth: ${req.body["auth"]}`);
-                if (this.isAuthenticated(req.body)) {
+                if (!this.isAuthenticated(req.body)) {
                     return res.writeHead(404);
                 }
 
