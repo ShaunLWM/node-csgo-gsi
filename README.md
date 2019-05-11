@@ -22,7 +22,7 @@ or
 
 ``` js
 const CSGOGSI = require("node-csgo-gsi");
-let gsi = new CSGOGSI({options});
+let gsi = new CSGOGSI({ options });
 gsi.on("event", function("optional data") {
 
 });
@@ -36,7 +36,8 @@ A sample script is in the `example` folder.
 
 ## Options
 - ```port``` - Set the server port (default: 3000)
-- ``` authToken``` - authToken to accept from client. Make sure all clients have the same authToken (default: "" - no authentication needed)
+- ``` authToken``` - An array of authentication token to accept from client. You can have multiple tokens (default: [] - no authentication needed)
+    - Example: Team 1 can have "token1". Team 2 can have "token2". Team1's sub team can have "token1sub" etc.
 
 # Events
 
@@ -101,15 +102,13 @@ A sample script is in the `example` folder.
 #### bombTimeLeft (returns Float)
 - Returns planted C4 time left.
 
----
 
-## To-do
-- Multi-player authentication code
+## Todo
+- None for now. Open an issue!
 
 ## Credits
 - [Double0negative/CSGO-HUD](https://github.com/Double0negative/CSGO-HUD)
 
----
 
 # License
 

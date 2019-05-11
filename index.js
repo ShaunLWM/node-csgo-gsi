@@ -3,9 +3,14 @@ const bodyParser = require("body-parser");
 const EventEmitter = require("events");
 
 class CSGOGSI extends EventEmitter {
-    constructor({ port = 3000, authToken = "" }) {
+    constructor({ port = 3000, authToken = [] }) {
         super();
-        this.authToken = authToken;
+        let tokens = authToken;
+        if (!Array.isArray(tokens)) {
+            tokens = [];
+        }
+
+        this.authToken = tokens;
         this.app = express();
 
         this.bombTime = 40;
@@ -33,7 +38,7 @@ class CSGOGSI extends EventEmitter {
     }
 
     isAuthenticated(data) {
-        if (this.authToken.length < 1 || (typeof data["auth"]["token"] !== "undefined" && this.authToken.length > 0 && data["auth"]["token"] === this.authToken)) {
+        if (this.authToken.length < 1 || (typeof data["auth"]["token"] !== "undefined" && this.authToken.length > 0 && this.authToken.includes(data["auth"]["token"]))) {
             return true;
         }
 
