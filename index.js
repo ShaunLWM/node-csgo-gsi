@@ -6,12 +6,12 @@ class CSGOGSI extends EventEmitter {
     constructor({ port = 3000, authToken = "" }) {
         super();
         this.authToken = authToken;
-        this._isBombPlanted = false;
-        this._c4Interval = null;
         this.app = express();
 
-        this.app.use(bodyParser.json());          // to support JSON-encoded bodies
-
+        this.bombTime = 40;
+        this.isBombPlanted = false;
+        this.bombTimer = null;
+        this.app.use(bodyParser.json());
         this.server = this.app.listen(port, () => {
             let addr = this.server.address();
             console.log(`[@] CSGO GSI server listening on ${addr.address}:${addr.port}`);
@@ -23,7 +23,7 @@ class CSGOGSI extends EventEmitter {
                 if (this.isAuthenticated(req.body)) {
                     return res.writeHead(404);
                 }
-                
+
                 this.emit("all", req.body);
                 this.process(req.body);
                 return res.writeHead(200);
@@ -65,8 +65,8 @@ class CSGOGSI extends EventEmitter {
                     maxTime = 15;
                     break;
                 case "over":
-                    if (this._isBombPlanted) {
-                        this._isBombPlanted = false;
+                    if (this.isBombPlanted) {
+                        this.isBombPlanted = false;
                         this.stopC4Countdown();
                     }
 
@@ -75,13 +75,12 @@ class CSGOGSI extends EventEmitter {
             }
 
             if (typeof data.round.bomb !== "undefined") {
-                // exploded, planted, defused
                 this.emit("bombState", data.round.bomb);
                 switch (data.round.bomb) {
                     case "planted":
-                        if (!this._isBombPlanted) {
-                            this._isBombPlanted = true;
-                            let timeleft = 40 - (new Date().getTime() / 1000 - data.provider.timestamp);
+                        if (!this.isBombPlanted) {
+                            this.isBombPlanted = true;
+                            let timeleft = this.bombTime - (new Date().getTime() / 1000 - data.provider.timestamp);
                             this.emit("bombTimeStart", timeleft);
                             this.startC4Countdown(timeleft);
                         }
@@ -89,7 +88,7 @@ class CSGOGSI extends EventEmitter {
                         break;
                     case "defused":
                     case "exploded":
-                        this._isBombPlanted = false;
+                        this.isBombPlanted = false;
                         this.stopC4Countdown();
                         break;
                 }
@@ -98,17 +97,16 @@ class CSGOGSI extends EventEmitter {
     }
 
     stopC4Countdown() {
-        if (this._c4Interval !== null) {
-            clearInterval(this._c4Interval);
-        }
+        if (this.bombTimer !== null) clearInterval(this.bombTimer);
     }
 
     startC4Countdown(time) {
-        this._c4Interval = setInterval(() => {
+        this.bombTimer = setInterval(() => {
             time = time - 1;
             if (time <= 0) {
-                clearInterval(this._c4Interval);
-                return self._isBombPlanted = false;
+                this.stopC4Countdown()
+                self.isBombPlanted = false;
+                return this.emit("bombExploded");
             }
 
             this.emit("bombTimeLeft", time);
