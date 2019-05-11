@@ -1,5 +1,4 @@
-const express = require("express");
-const bodyParser = require("body-parser");
+const http = require("http");
 const EventEmitter = require("events");
 
 class CSGOGSI extends EventEmitter {
@@ -11,30 +10,39 @@ class CSGOGSI extends EventEmitter {
         }
 
         this.authToken = tokens;
-        this.app = express();
+        this.app = http.createServer((req, res) => {
+            if (req.method !== "POST") {
+                res.writeHead(404, { "Content-Type": "text/plain" });
+                return res.end("404 Not Found");
+            }
+
+            let body = "";
+            req.on("data", data => {
+                body += data;
+            });
+
+            req.on("end", () => {
+                this.processJson(body);
+                return res.writeHead(200);
+            });
+        });
 
         this.bombTime = 40;
         this.isBombPlanted = false;
         this.bombTimer = null;
-        this.app.use(bodyParser.json());
-        this.server = this.app.listen(port, () => {
+        this.server = this.app.listen({ port }, () => {
             let addr = this.server.address();
             console.log(`[@] CSGO GSI server listening on ${addr.address}:${addr.port}`);
         });
+    }
 
-        this.app.post("/", (req, res) => {
-            if (typeof req.body !== "undefined") {
-                if (!this.isAuthenticated(req.body)) {
-                    return res.writeHead(404);
-                }
-
-                this.emit("all", req.body);
-                this.process(req.body);
-                return res.writeHead(200);
-            }
-
-            return res.writeHead(404);
-        });
+    processJson(json) {
+        try {
+            let data = JSON.parse(json);
+            if (!this.isAuthenticated(data)) return;
+            this.emit("all", data);
+            this.process(data);
+        } catch (error) { }
     }
 
     isAuthenticated(data) {
