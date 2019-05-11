@@ -5,95 +5,108 @@
 
 Counter-Strike: Global Offensive [Game State Integration](https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Game_State_Integration) for node.js.
 
----
-
-# Usage
+## Usage
 
 Install `gamestate_integration_node.cfg` into your CS:GO cfg directory.
 
-Example: `C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\csgo\cfg`
+Example: `C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\csgo\cfg\gamestate_integration_node.cfg`
+
+This file will automatically be executed on client start. Look into the console to check if it has executed successfully.
 
 ## Installation
 `npm install node-csgo-gsi --save`
 
+or
+
+```yarn add node-csgo-gsi```
+
 ``` js
-var CSGOGSI = require('node-csgo-gsi');
-var gsi = new CSGOGSI();
-gsi.on('event', function('optional data') {
+const CSGOGSI = require("node-csgo-gsi");
+let gsi = new CSGOGSI({options});
+gsi.on("event", function("optional data") {
 
 });
 ```
 
----
 
-# Example
+## Example
 
 A sample script is in the `example` folder.
 
----
+
+## Options
+- ```port``` - Set the server port (default: 3000)
+- ``` authToken``` - authToken to accept from client. Make sure all clients have the same authToken (default: "" - no authentication needed)
 
 # Events
 
 #### all
 - Returns the full posted data (use this if you do not want to use the given events provided below)
 
----
-
 ## Game
 
-#### gameMap
+#### gameMap (returns String)
 - Returns current map.
 
-#### gamePhase
+#### gamePhase (returns String)
 - Returns current game state.
-    - live
-    - warmup
+    - `live`
+    - `warmup`
 
-#### gameRounds
+#### gameRounds (returns Integer)
 -  Returns the current round number.
     - eg: 10
 
-#### gameCTscore
+#### gameCTscore (returns Object)
 - Returns the current Counter Terrorist team's score.
+```
+      "score": int,
+      "consecutive_round_losses": int,
+      "timeouts_remaining": int,
+      "matches_won_this_series": int
+```
 
-#### gameTscore
+#### gameTscore (returns Object)
 - Returns the current Terrorist team's score.
+```
+      "score": int,
+      "consecutive_round_losses": int,
+      "timeouts_remaining": int,
+      "matches_won_this_series": int
+```
 
 ## Round
-#### roundPhase
+#### roundPhase (returns String)
 - Returns the current round state.
-    - live
-    - freezetime
-    - over
+    - `live`
+    - `freezetime`
+    - `over`
 
-#### roundWinTeam
+#### roundWinTeam (returns String)
 - Returns the latest round's winner.
-    - CT
-    - T
+    - `CT`
+    - `T`
 
 ## C4
 
-#### bombState
+#### bombState (returns String)
 - Returns C4 state.
-    - planted
-    - exploded
-    - defused
+    - `planted`
+    - `exploded`
+    - `defused`
 
-#### bombTimeStart
+#### bombTimeStart (returns Float)
 - Returns when C4 is planted.
 
-#### bombTimeLeft
+#### bombTimeLeft (returns Float)
 - Returns planted C4 time left.
 
 ---
 
-# To-do
-- Player's Integration
-- auth token
+## To-do
+- Multi-player authentication code
 
----
-
-# Credits
+## Credits
 - [Double0negative/CSGO-HUD](https://github.com/Double0negative/CSGO-HUD)
 
 ---
@@ -102,22 +115,4 @@ A sample script is in the `example` folder.
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Shaun
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Copyright (c) 2019 Shaun
