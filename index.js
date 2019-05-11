@@ -1,104 +1,105 @@
-module.exports = CSGOGSI;
+const express = require("express");
+const bodyParser = require("body-parser");
+const EventEmitter = require("events");
 
-var http = require('http');
-var express = require('express');
-var bodyParser = require('body-parser');
+class CSGOGSI extends EventEmitter {
+    constructor(port = 3000) {
+        super();
+        this._isBombPlanted = false;
+        this._c4Interval = null;
+        this.app = express();
 
-require('util').inherits(CSGOGSI, require('events').EventEmitter);
+        this.app.use(bodyParser.json());          // to support JSON-encoded bodies
 
-var app = express();
-var server = http.createServer(app);
+        this.server = this.app.listen(port, () => {
+            let addr = this.server.address();
+            console.log(`[@] CSGO GSI server listening on ${addr.address}:${addr.port}`);
+        });
 
-app.use( bodyParser.json());          // to support JSON-encoded bodies
-app.use(bodyParser.urlencoded({       // to support URL-encoded bodies
-    extended: true
-}));
+        this.app.post("/", (req, res) => {
+            if (typeof req.body !== "undefined") {
+                this.emit("all", req.body);
+                this.process(req.body);
+                return res.writeHead(200);
+            }
 
-function CSGOGSI() {
-    var self = this;
-    require('events').EventEmitter.call(this);
-    server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function() {
-        var addr = server.address();
-        console.log("CSGO GSI server listening on", addr.address + ":" + addr.port);
-    });
+            return res.writeHead(404);
+        });
+    }
 
-    app.post('/', function (req, res) {
-        if (typeof req.body !== 'undefined') {
-            self.emit('all', req.body);
-            self.process(req.body);
+    process(data) {
+        if (typeof data.map !== "undefined") {
+            this.emit("gameMap", data.map.name);
+            this.emit("gamePhase", data.map.phase); //warmup etc
+            this.emit("gameRounds", data.map.round);
+            this.emit("gameCTscore", data.map.team_ct_score);
+            this.emit("gameTscore", data.map.team_t_score);
         }
-    });
 
-    this._isBombPlanted = false;
-    this._c4Interval;
+        if (typeof data.player !== "undefined") {
+            this.emit("player", data.player);
+        }
+
+        if (typeof data.round !== "undefined") {
+            let maxTime = 0;
+            this.emit("roundPhase", data.round.phase);
+            switch (data.round.phase) {
+                case "live":
+                    maxTime = 115;
+                    break;
+                case "freezetime":
+                    maxTime = 15;
+                    break;
+                case "over":
+                    if (this._isBombPlanted) {
+                        this._isBombPlanted = false;
+                        this.stopC4Countdown();
+                    }
+
+                    this.emit("roundWinTeam", data.round.win_team);
+                    break;
+            }
+
+            if (typeof data.round.bomb !== "undefined") {
+                // exploded, planted, defused
+                this.emit("bombState", data.round.bomb);
+                switch (data.round.bomb) {
+                    case "planted":
+                        if (!this._isBombPlanted) {
+                            this._isBombPlanted = true;
+                            let timeleft = 40 - (new Date().getTime() / 1000 - data.provider.timestamp);
+                            this.emit("bombTimeStart", timeleft);
+                            this.startC4Countdown(timeleft);
+                        }
+
+                        break;
+                    case "defused":
+                    case "exploded":
+                        this._isBombPlanted = false;
+                        this.stopC4Countdown();
+                        break;
+                }
+            }
+        }
+    }
+
+    stopC4Countdown() {
+        if (this._c4Interval !== null) {
+            clearInterval(this._c4Interval);
+        }
+    }
+
+    startC4Countdown(time) {
+        this._c4Interval = setInterval(() => {
+            time = time - 1;
+            if (time <= 0) {
+                clearInterval(this._c4Interval);
+                return self._isBombPlanted = false;
+            }
+
+            this.emit("bombTimeLeft", time);
+        }, 1000);
+    }
 }
 
-CSGOGSI.prototype.process = function(data) {
-    var self = this;
-    if (typeof data.map !== 'undefined') {
-        this.emit('gameMap', data.map.name);
-        this.emit('gamePhase', data.map.phase); //warmup etc
-        this.emit('gameRounds', data.map.round);
-        this.emit('gameCTscore', data.map.team_ct_score);
-        this.emit('gameTscore', data.map.team_t_score);
-    }
-
-    if (typeof data.player !== 'undefined') {
-        this.emit('player', data.player);
-    }
-
-    if (typeof data.round !== 'undefined') {
-
-        var maxTime = 0;
-        this.emit('roundPhase', data.round.phase);
-        switch(data.round.phase) {
-            case 'live':
-            maxTime = 115;
-            break;
-            case 'freezetime':
-            maxTime = 15;
-            break;
-            case 'over':
-            if (this._isBombPlanted) {
-                this._isBombPlanted = false;
-                clearInterval(this._c4Interval);
-            }
-            this.emit('roundWinTeam', data.round.win_team);
-            break;
-        }
-
-        if (typeof data.round.bomb !== 'undefined') {
-            // exploded, planted, defused
-            this.emit('bombState', data.round.bomb);
-            switch(data.round.bomb) {
-                case 'planted':
-                if (!this._isBombPlanted) {
-                    this._isBombPlanted = true;
-                    var timeleft = 40 - (new Date().getTime() / 1000 - data.provider.timestamp);
-                    this.emit('bombTimeStart', timeleft);
-                    this.c4Countdown(timeleft);
-                }
-                break;
-                case 'defused':
-                case 'exploded':
-                this._isBombPlanted = false;
-                clearInterval(this._c4Interval);
-                break;
-            }
-        }
-    }
-};
-
-CSGOGSI.prototype.c4Countdown = function(time) {
-    var self = this;
-    this._c4Interval = setInterval(function() {
-        time = time - 1;
-        if (time <= 0) {
-            clearInterval(self._c4Interval);
-            //counter ended, do something here
-            self._isBombPlanted = false;
-            return;
-        }
-        self.emit('bombTimeLeft', time);
-    }, 1000);
-};
+module.exports = CSGOGSI;
