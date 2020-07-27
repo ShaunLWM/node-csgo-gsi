@@ -117,7 +117,7 @@ class CSGOGSI extends EventEmitter {
             time = time - 1;
             if (time <= 0) {
                 this.stopC4Countdown()
-                self.isBombPlanted = false;
+                this.isBombPlanted = false;
                 return this.emit("bombExploded");
             }
 
