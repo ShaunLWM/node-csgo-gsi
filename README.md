@@ -88,6 +88,19 @@ A sample script is in the `example` folder.
     - `CT`
     - `T`
 
+#### roundWins (returns Object)
+- Returns a key-value object of round number and reason
+Example
+```
+{
+      "1": "ct_win_elimination",
+      "2": "ct_win_time",
+      "3": "ct_win_elimination",
+      "4": "ct_win_time",
+      "5": "t_win_bomb"
+}
+```
+
 ## C4
 
 #### bombState (returns String)
