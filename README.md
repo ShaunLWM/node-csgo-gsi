@@ -11,7 +11,17 @@ Install `gamestate_integration_node.cfg` into your CS:GO cfg directory.
 
 Example: `C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\csgo\cfg\gamestate_integration_node.cfg`
 
-This file will automatically be executed on client start. Look into the console to check if it has executed successfully.
+This file will automatically be executed on client start. Look into the console to check if it has executed successfully. As per the [documentation](https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Game_State_Integration#Locating_CS:GO_Install_Directory), the file name should start with `gamestate_integration_` and ends with `.cfg`.
+
+```
+gamestate_integration_yourservicenamehere.cfg
+```
+
+The console should have an output like this the moment you open CS:GO
+
+```
+Loading Game State Integration: gamestate_integration_node.cfg
+```
 
 ## Installation
 `npm install node-csgo-gsi --save`
@@ -115,6 +125,8 @@ Example
 #### bombTimeLeft (returns Float)
 - Returns planted C4 time left.
 
+## WARNING
+C4 timer is not accurate. CS:GO does not return a real time updates when the bomb is planted, thus, do just look for the `bombState` event instead of relying on the timer.
 
 ## Todo
 - None for now. Open an issue!
@@ -127,4 +139,4 @@ Example
 
 The MIT License (MIT)
 
-Copyright (c) 2019 Shaun
+Copyright (c) 2021 Shaun

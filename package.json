@@ -1,22 +1,22 @@
 {
-  "name": "node-csgo-gsi",
-  "version": "0.0.4",
-  "description": "Counter-Strike: Global Offensive Game State Integration for nodejs. https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Game_State_Integration",
-  "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ShaunLWM/node-csgo-gsi.git"
-  },
-  "keywords": [
-    "steam",
-    "csgo",
-    "csgo-gsi",
-    "steam-csgo"
-  ],
-  "author": "Shaun Lim",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/ShaunLWM/node-csgo-gsi/issues"
-  },
-  "homepage": "https://github.com/ShaunLWM/node-csgo-gsi#readme"
+	"name": "node-csgo-gsi",
+	"version": "0.0.4-alpha.1",
+	"description": "Counter-Strike: Global Offensive Game State Integration for nodejs. https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Game_State_Integration",
+	"main": "index.js",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ShaunLWM/node-csgo-gsi.git"
+	},
+	"keywords": [
+		"steam",
+		"csgo",
+		"csgo-gsi",
+		"steam-csgo"
+	],
+	"author": "Shaun",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/ShaunLWM/node-csgo-gsi/issues"
+	},
+	"homepage": "https://github.com/ShaunLWM/node-csgo-gsi#readme"
 }
