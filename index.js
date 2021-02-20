@@ -46,15 +46,11 @@ class CSGOGSI extends EventEmitter {
     }
 
     isAuthenticated(data) {
-        if (this.authToken.length < 1 || (typeof data["auth"]["token"] !== "undefined" && this.authToken.length > 0 && this.authToken.includes(data["auth"]["token"]))) {
-            return true;
-        }
-
-        return false;
+        return this.authToken.length < 1 || (data["auth"]["token"] && this.authToken.length > 0 && this.authToken.includes(data["auth"]["token"]))
     }
 
     process(data) {
-        if (typeof data["map"] !== "undefined") {
+        if (data["map"]) {
             this.emit("gameMap", data["map"]["name"]);
             this.emit("gamePhase", data["map"]["phase"]); //warmup etc
             this.emit("gameRounds", data["map"]["round"]);
@@ -65,18 +61,17 @@ class CSGOGSI extends EventEmitter {
         if (data["round_wins"]) {
             this.emit("roundWins", data["round_wins"]);
         }
+
+        if (data["player"]) {
             this.emit("player", data["player"]);
         }
 
-        if (typeof data["round"] !== "undefined") {
-            let maxTime = 0;
+        if (data["round"]) {
             this.emit("roundPhase", data["round"]["phase"]);
             switch (data["round"]["phase"]) {
                 case "live":
-                    maxTime = 115;
                     break;
                 case "freezetime":
-                    maxTime = 15;
                     break;
                 case "over":
                     if (this.isBombPlanted) {
@@ -88,7 +83,7 @@ class CSGOGSI extends EventEmitter {
                     break;
             }
 
-            if (typeof data["round"]["bomb"] !== "undefined") {
+            if (data["round"]["bomb"]) {
                 this.emit("bombState", data["round"]["bomb"]);
                 switch (data["round"]["bomb"]) {
                     case "planted":
@@ -107,11 +102,12 @@ class CSGOGSI extends EventEmitter {
                         break;
                 }
             }
+
         }
     }
 
     stopC4Countdown() {
-        if (this.bombTimer !== null) clearInterval(this.bombTimer);
+        if (this.bombTimer) clearInterval(this.bombTimer);
     }
 
     startC4Countdown(time) {
