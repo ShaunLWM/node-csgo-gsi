@@ -33,8 +33,8 @@ or
 ``` js
 const CSGOGSI = require("node-csgo-gsi");
 let gsi = new CSGOGSI({ options });
-gsi.on("event", function("optional data") {
-
+gsi.on("EVENT_NAME", function("optional data") {
+    // EVENT_NAME is the individual event name below. Look into the example/index.js for more information
 });
 ```
 
@@ -125,8 +125,8 @@ Example
 #### bombTimeLeft (returns Float)
 - Returns planted C4 time left.
 
-## WARNING
-C4 timer is not accurate. CS:GO does not return a real time updates when the bomb is planted, thus, do just look for the `bombState` event instead of relying on the timer.
+## WARNING ⚠️
+C4 timer (`bombTimeLeft` event)  is not accurate. CS:GO does not return a real time update when the bomb is planted. It's just an estimation on the library's side. Thus, do just look for the `bombState` event instead of relying on the timer.
 
 ## Todo
 - None for now. Open an issue!
