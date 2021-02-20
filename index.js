@@ -54,8 +54,8 @@ class CSGOGSI extends EventEmitter {
             this.emit("gameMap", data["map"]["name"]);
             this.emit("gamePhase", data["map"]["phase"]); //warmup etc
             this.emit("gameRounds", data["map"]["round"]);
-            this.emit("gameCTscore", data["map"]["team_ct"]["score"]);
-            this.emit("gameTscore", data["map"]["team_t"]["score"]);
+            this.emit("gameCTscore", data["map"]["team_ct"]);
+            this.emit("gameTscore", data["map"]["team_t"]);
         }
 
         if (data["round_wins"]) {
