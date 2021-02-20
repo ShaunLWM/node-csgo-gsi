@@ -1,7 +1,7 @@
 # node-csgo-gsi
 
-[![npm](https://img.shields.io/npm/dt/node-csgo-gsi.svg)]()
-[![npm](https://img.shields.io/npm/v/node-csgo-gsi.svg)]()
+[![npm](https://img.shields.io/npm/dt/node-csgo-gsi.svg)](https://github.com/ShaunLWM/node-csgo-gsi/releases)
+[![npm](https://img.shields.io/npm/v/node-csgo-gsi.svg)](https://www.npmjs.com/package/node-csgo-gsi)
 
 Counter-Strike: Global Offensive [Game State Integration](https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Game_State_Integration) for node.js.
 
