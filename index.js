@@ -23,7 +23,7 @@ class CSGOGSI extends EventEmitter {
 
             req.on("end", () => {
                 this.processJson(body);
-                return res.writeHead(200);
+                return res.writeHead(200).end();
             });
         });
 
