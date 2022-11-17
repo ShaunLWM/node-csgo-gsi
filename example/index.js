@@ -13,12 +13,12 @@ gsi.on("all", function (data) {
 gsi.on("gameMap", (map) => console.log(`gameMap: ${map}`));
 gsi.on("gamePhase", (phase) => console.log(`gamePhase: ${phase}`));
 gsi.on("gameRounds", (rounds) => console.log(`gameRounds: ${rounds}`));
-gsi.on("gameCTscore", (score) => console.log(`gameCTscore: ${score}`));
-gsi.on("gameTscore", (score) => console.log(`gameTscore: ${score}`));
-gsi.on("roundWins", (wins) => console.log(`roundWins: ${roundWins}`));
-gsi.on("player", (player) => console.log(`player: ${player}`));
+gsi.on("gameCTscore", (score) => console.log(`gameCTscore: ${JSON.stringify(score)}`));
+gsi.on("gameTscore", (score) => console.log(`gameTscore: ${JSON.stringify(score)}`));
+gsi.on("roundWins", (roundWins) => console.log(`roundWins: ${roundWins}`));
+gsi.on("player", (player) => console.log(`player: ${JSON.stringify(player)}`));
 gsi.on("roundPhase", (phase) => console.log(`roundPhase: ${phase}`));
-gsi.on("roundWinTeam", (team) => console.log(`roundWinTeam HUAT AH: ${team}`));
+gsi.on("roundWinTeam", (team) => console.log(`roundWinTeam: ${team}`));
 gsi.on("bombState", (state) => console.log(`bombState: ${state}`));
 gsi.on("bombTimeStart", (time) => console.log(`bombTimeStart: ${time}`));
 gsi.on("bombExploded", () => console.log(`bombExploded`));
