@@ -19,5 +19,16 @@
 	"bugs": {
 		"url": "https://github.com/ShaunLWM/node-csgo-gsi/issues"
 	},
-	"homepage": "https://github.com/ShaunLWM/node-csgo-gsi#readme"
+	"homepage": "https://github.com/ShaunLWM/node-csgo-gsi#readme",
+	"dependencies": {
+		"@google-cloud/text-to-speech": "^4.2.2",
+		"aws-sdk": "^2.1377.0",
+		"axios": "^1.4.0",
+		"dotenv": "^16.0.3",
+		"gtts": "^0.2.1",
+		"openai": "^3.2.1",
+		"play-sound": "^1.1.5",
+		"say": "^0.16.0",
+		"temp": "^0.9.4"
+	}
 }
