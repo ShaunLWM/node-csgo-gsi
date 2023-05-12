@@ -1,92 +1,127 @@
-const { Configuration, OpenAIApi } = require("openai");
-const fs = require("fs");
-const CSGOGSI = require("./index"); // const CSGOGSI = require("node-csgo-gsi");
-const player = require("play-sound")();
-const gtts = require("gtts");
-const temp = require("temp");
-const AWS = require('aws-sdk');
-const Speaker = require('speaker');
-const MemoryStream = require('memory-stream');
-const Lame = require('lame').Lame;
+const http = require("http");
+const EventEmitter = require("events");
 
+class CSGOGSI extends EventEmitter {
+    constructor({ port = 3000, authToken = [] }) {
+        super();
+        let tokens = authToken;
+        if (!Array.isArray(tokens)) {
+            tokens = [];
+        }
 
-const configuration = new Configuration({
-    apiKey: "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",
-  });  
-  const openai = new OpenAIApi(configuration);  
+        this.authToken = tokens;
+        this.app = http.createServer((req, res) => {
+            if (req.method !== "POST") {
+                res.writeHead(404, { "Content-Type": "text/plain" });
+                return res.end("404 Not Found");
+            }
 
-let gsi = new CSGOGSI({
-    port: 3000,
-    authToken: ["Q79v5tcxVQ8u", "Team2Token", "Team2SubToken"] // this must match the cfg auth token
-});
-
-let previousRoundKills = 0;
-
-gsi.on("all", function (data) {
-    fs.appendFileSync("./payload.txt", JSON.stringify(data, null, 2));
-    if (data.player && data.player.state) {
-        const currentPlayerState = data.player.state;
-        const currentRoundKills = currentPlayerState.round_kills;
-    
-        if (currentRoundKills > previousRoundKills && data.player.steamid === "76561197989058584") {
-            const prompt = 'Ты - комментатор матчей по CS:GO, который наблюдает самый впечатляющий килл от игрока в своей жизни. Используя не более 12 слов, прокомментируй это убийство используя одно из следующих имен: саша / санёчек / сашок / сашка / просто-напросто-саня / санёк / александр олегович / лысый монстр. Пришли только один комментарий.';
-    
-            getChatGPTComment(prompt).then((comment) => {
-                console.log(comment);
-                synthesizeAndPlayText(comment); // Add this line
+            let body = "";
+            req.on("data", data => {
+                body += data;
             });
-    
-            previousRoundKills = currentRoundKills;
-        } else if (currentRoundKills < previousRoundKills) {
-            previousRoundKills = 0;
-        }  
-    }  
-});
 
+            req.on("end", () => {
+                this.processJson(body);
+                return res.writeHead(200).end();
+            });
+        });
 
-// Configure AWS SDK
-AWS.config.update({
-  region: 'us-west-2', // Set your desired region
-  accessKeyId: '123', // Replace with your AWS access key ID
-  secretAccessKey: '345' // Replace with your AWS secret access key
-});
-
-const polly = new AWS.Polly();
-
-function synthesizeAndPlayText(text, lang = "ru") {
-  const params = {
-    OutputFormat: 'mp3',
-    Text: text,
-    VoiceId: 'Maxim', // Maxim is a Russian male voice, you can use Tatyana for a female voice
-    TextType: 'text',
-    LanguageCode: lang
-  };
-
-  polly.synthesizeSpeech(params, (err, data) => {
-    if (err) {
-      console.error('Error generating TTS audio:', err);
-      return;
+        this.bombTime = 40;
+        this.isBombPlanted = false;
+        this.bombTimer = null;
+        this.server = this.app.listen({ port }, () => {
+            let addr = this.server.address();
+            console.log(`[@] CSGO GSI server listening on ${addr.address}:${addr.port}`);
+        });
     }
 
-    const audioStream = new MemoryStream();
-    audioStream.end(data.AudioStream);
+    processJson(json) {
+        try {
+            let data = JSON.parse(json);
+            if (!this.isAuthenticated(data)) return;
+            this.emit("all", data);
+            this.process(data);
+        } catch (error) { }
+    }
 
-    const decoder = new Lame({
-      output: 'buffer',
-      bitwidth: 16,
-      channels: 1,
-      mode: Lame.MONO,
-      float: false,
-      signed: true,
-    }).setBuffer(data.AudioStream);
+    isAuthenticated(data) {
+        return this.authToken.length < 1 || (data["auth"]["token"] && this.authToken.length > 0 && this.authToken.includes(data["auth"]["token"]))
+    }
 
-    const speaker = new Speaker({
-      channels: 1,
-      bitDepth: 16,
-      sampleRate: 16000, // Set the sample rate according to the voice you use
-      signed: true,
-    });
+    process(data) {
+        if (data["map"]) {
+            this.emit("gameMap", data["map"]["name"]);
+            this.emit("gamePhase", data["map"]["phase"]); //warmup etc
+            this.emit("gameRounds", data["map"]["round"]);
+            this.emit("gameCTscore", data["map"]["team_ct"]);
+            this.emit("gameTscore", data["map"]["team_t"]);
+        }
 
-    audioStream.pipe(decoder).pipe(speaker);
-  });
+        if (data["round_wins"]) {
+            this.emit("roundWins", data["round_wins"]);
+        }
+
+        if (data["player"]) {
+            this.emit("player", data["player"]);
+        }
+
+        if (data["round"]) {
+            this.emit("roundPhase", data["round"]["phase"]);
+            switch (data["round"]["phase"]) {
+                case "live":
+                    break;
+                case "freezetime":
+                    break;
+                case "over":
+                    if (this.isBombPlanted) {
+                        this.isBombPlanted = false;
+                        this.stopC4Countdown();
+                    }
+
+                    this.emit("roundWinTeam", data["round"]["win_team"]);
+                    break;
+            }
+
+            if (data["round"]["bomb"]) {
+                this.emit("bombState", data["round"]["bomb"]);
+                switch (data["round"]["bomb"]) {
+                    case "planted":
+                        if (!this.isBombPlanted) {
+                            this.isBombPlanted = true;
+                            let timeleft = this.bombTime - (new Date().getTime() / 1000 - data["provider"]["timestamp"]);
+                            this.emit("bombTimeStart", timeleft);
+                            this.startC4Countdown(timeleft);
+                        }
+
+                        break;
+                    case "defused":
+                    case "exploded":
+                        this.isBombPlanted = false;
+                        this.stopC4Countdown();
+                        break;
+                }
+            }
+
+        }
+    }
+
+    stopC4Countdown() {
+        if (this.bombTimer) clearInterval(this.bombTimer);
+    }
+
+    startC4Countdown(time) {
+        this.bombTimer = setInterval(() => {
+            time = time - 1;
+            if (time <= 0) {
+                this.stopC4Countdown()
+                this.isBombPlanted = false;
+                return this.emit("bombExploded");
+            }
+
+            this.emit("bombTimeLeft", time);
+        }, 1000);
+    }
 }
+
+module.exports = CSGOGSI;
