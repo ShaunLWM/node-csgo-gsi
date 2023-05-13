@@ -1,9 +1,15 @@
 const { Configuration, OpenAIApi } = require("openai");
 const fs = require("fs");
 const CSGOGSI = require("../index"); // const CSGOGSI = require("node-csgo-gsi");
-const gtts = require("gtts");
-const temp = require("temp");
 const AWS = require('aws-sdk');
+const util = require('util');
+const path = require("path");
+const { exec } = require('child_process');
+const { Polly, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly");
+const { S3 } = require("@aws-sdk/client-s3");
+const writeFile = util.promisify(fs.writeFile);
+const unlink = util.promisify(fs.unlink);
+const playSound = require("play-sound")((opts = {}));
 
 require('dotenv').config();
 
@@ -65,7 +71,6 @@ async function getChatGPTComment(prompt) {
   }
 }
 
-
 // Configure AWS SDK
 AWS.config.update({
   region: 'eu-central-1',
@@ -73,51 +78,50 @@ AWS.config.update({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
 });
 
-const polly = new AWS.Polly();
-const util = require('util');
-const writeFile = util.promisify(fs.writeFile);
-const unlink = util.promisify(fs.unlink);
-const path = require("path");
-const { exec } = require('child_process');
+const polly = new Polly({ region: "eu-central-1" });
 
 function synthesizeAndPlayText(text, lang = "ru-RU") {
-    const params = {
-        OutputFormat: 'mp3',
-        Text: text,
-        VoiceId: 'Maxim',
-        TextType: 'text',
-        LanguageCode: lang
-    };
+  const params = {
+      OutputFormat: 'mp3',
+      Text: text,
+      VoiceId: 'Maxim',
+      TextType: 'text',
+      LanguageCode: lang
+  };
 
-    polly.synthesizeSpeech(params, (err, data) => {
-        if (err) {
-            console.error('Error generating TTS audio:', err);
-            return;
+  polly.synthesizeSpeech(params, function(err, data) {
+      if (err) {
+          console.error('Error generating TTS audio:', err);
+      } else if (data) {
+          if (data.AudioStream instanceof Buffer) {
+              // Save the audio to a temporary file
+              const filename = `${Math.floor(Math.random() * 100000)}.mp3`;
+              const filePath = path.join(__dirname, filename);
+              console.log('Generating audio file:', filePath);
+
+
+              // Write the data to the file and then play it
+              fs.writeFile(filePath, data.AudioStream, function(err) {
+                if (err) {
+                    console.error('Error writing audio file:', err);
+                } else {
+                    console.log('Audio file created, playing audio...');
+    
+                    // Play the audio file
+                    exec(`start "" "${filePath}"`, (error, stdout, stderr) => {
+                        if (error) {
+                            console.log(`error: ${error.message}`);
+                            return;
+                        }
+                        if (stderr) {
+                            console.log(`stderr: ${stderr}`);
+                            return;
+                        }
+                        console.log(`stdout: ${stdout}`);
+                    });
+                }
+            });
         }
-
-        // Save the audio to a temporary file
-        const filename = `${Math.floor(Math.random() * 100000)}.mp3`;
-        const filePath = path.join("/home/deck/VSC_Projects/csgo_gsi/", filename);
-
-        // Write the data to the file and then play it
-        writeFile(filePath, data.AudioStream)
-            .then(() => {
-                // Play the audio file
-                exec("mplayer /home/deck/VSC_Projects/csgo_gsi/20057.mp3",  {maxBuffer: 1024 * 500}, (error, stdout, stderr) => {
-                  if (error) {
-                      console.log(`error: ${error.message}`);
-                      return;
-                  }
-                  if (stderr) {
-                      console.log(`stderr: ${stderr}`);
-                      return;
-                  }
-                  console.log(`stdout: ${stdout}`);
-              });
-              
-                // Delete the temporary file after playing
-                //unlink(filename).catch(console.error);
-            })
-            .catch(console.error);
-    });
+      }
+  });
 }
